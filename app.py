@@ -1,74 +1,33 @@
-import os
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 import random
 
-# Firebase認証情報のパスを設定
-firebase_credentials = "C:/Users/itos2/werewolf_game/firebase_config.json"
+# Streamlit SecretsからFirebase認証情報を取得
+firebase_credentials = st.secrets["firebase"]
 cred = credentials.Certificate(firebase_credentials)
 
 # Firebaseの初期化（既に初期化されていない場合のみ）
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
-# Firestoreのクライアントを作成
 db = firestore.client()
 
-# タイトル
+# プレイヤー名入力
 st.title("人狼ゲーム（テストモード）")
-
-# プレイヤー登録
 player_name = st.text_input("あなたの名前を入力してください:")
 
-# 役職リスト（ランダムに割り当てるため）
-roles = ["人狼", "人狼", "占い師", "騎士", "村人"]
-
-# "/" を含む名前を排除し、空白を削除
-player_name = player_name.replace("/", "").strip()
-
-# プレイヤーの役職を初期化
-role = None
-
-# プレイヤー名が空でないか確認
+# 役職をランダムに割り当てる
 if player_name:
-    try:
-        # すでに役職が割り当てられているか確認
-        player_role_ref = db.collection("werewolf_game").document(player_name).get()
+    roles = ["村人", "人狼", "占い師", "騎士", "狂人"]
+    assigned_role = random.choice(roles)
 
-        if player_role_ref.exists:
-            role = player_role_ref.to_dict()["role"]
-            st.write(f"あなたの役職はすでに: {role} です。")
-        else:
-            # ランダムに役職を割り当てる
-            random_role = random.choice(roles)
-            db.collection("werewolf_game").document(player_name).set({
-                "role": random_role
-            })
-            role = random_role  # ランダムに割り当てた役職を変数に保存
-            st.write(f"あなたの役職はランダムに {role} に決まりました。")
+    # Firestoreに役職を保存
+    player_role_ref = db.collection("werewolf_game").document(player_name)
+    player_role_ref.set({"role": assigned_role})
 
-    except Exception as e:
-        st.error(f"エラーが発生しました: {e}")
-else:
-    st.error("プレイヤー名を入力してください。")
+    st.write(f"あなたの役職はランダムに {assigned_role} に決まりました。")
 
-# 夜のターン: 人狼のチャット機能
-if role == "人狼":
-    st.subheader("あなたは人狼です。他の人狼と協力して襲撃対象を決めてください。")
-
-    # チャットメッセージの送信
-    chat_message = st.text_input("メッセージを入力してください:")
-
-    if st.button("送信"):
-        db.collection("werewolf_chat").add({
-            "player": player_name,
-            "message": chat_message
-        })
-
-    # チャット履歴の表示
-    st.write("人狼チャット:")
-    chat_docs = db.collection("werewolf_chat").stream()
-    for doc in chat_docs:
-        chat = doc.to_dict()
-        st.write(f"{chat['player']}: {chat['message']}")
+    # 人狼の場合のチャット画面表示（仮）
+    if assigned_role == "人狼":
+        st.write("あなたは人狼です。チャットで他の人狼と会話しましょう。")
