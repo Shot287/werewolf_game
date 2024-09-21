@@ -1,17 +1,19 @@
+import os
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 import random
 
-# Streamlit SecretsからFirebaseの認証情報を取得
-firebase_config = st.secrets["firebase"]
+# 環境変数からFirebaseの認証情報を取得
+firebase_credentials = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 
 # Firebaseの初期化
-if not firebase_admin._apps:
-    cred = credentials.Certificate(firebase_config)
+if firebase_credentials and not firebase_admin._apps:
+    cred = credentials.Certificate(firebase_credentials)
     firebase_admin.initialize_app(cred)
-
-db = firestore.client()
+    db = firestore.client()
+else:
+    st.error("Firebaseの認証情報が見つかりません")
 
 # タイトル
 st.title("人狼ゲーム（テストモード）")
