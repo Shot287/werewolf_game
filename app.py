@@ -4,16 +4,16 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import random
 
-# 環境変数からFirebaseの認証情報を取得
-firebase_credentials = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+# Firebase認証情報のパスを設定
+firebase_credentials = "C:/Users/itos2/werewolf_game/firebase_config.json"
+cred = credentials.Certificate(firebase_credentials)
 
-# Firebaseの初期化
-if firebase_credentials and not firebase_admin._apps:
-    cred = credentials.Certificate(firebase_credentials)
+# Firebaseの初期化（既に初期化されていない場合のみ）
+if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
-    db = firestore.client()
-else:
-    st.error("Firebaseの認証情報が見つかりません")
+
+# Firestoreのクライアントを作成
+db = firestore.client()
 
 # タイトル
 st.title("人狼ゲーム（テストモード）")
