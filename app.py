@@ -3,11 +3,23 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import random
 
-# Streamlit SecretsからFirebase認証情報を取得
-firebase_credentials = st.secrets["firebase"]
+# FirebaseのSecrets情報を辞書形式で取得
+firebase_credentials = {
+    "type": st.secrets["firebase"]["type"],
+    "project_id": st.secrets["firebase"]["project_id"],
+    "private_key_id": st.secrets["firebase"]["private_key_id"],
+    "private_key": st.secrets["firebase"]["private_key"].replace("\\n", "\n"),
+    "client_email": st.secrets["firebase"]["client_email"],
+    "client_id": st.secrets["firebase"]["client_id"],
+    "auth_uri": st.secrets["firebase"]["auth_uri"],
+    "token_uri": st.secrets["firebase"]["token_uri"],
+    "auth_provider_x509_cert_url": st.secrets["firebase"]["auth_provider_x509_cert_url"],
+    "client_x509_cert_url": st.secrets["firebase"]["client_x509_cert_url"]
+}
+
 cred = credentials.Certificate(firebase_credentials)
 
-# Firebaseの初期化（既に初期化されていない場合のみ）
+# Firebaseの初期化
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
