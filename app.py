@@ -1,14 +1,18 @@
+import os
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 import random
 
-# Firebaseの初期化（すでに初期化されていない場合のみ実行）
+# Firebase認証情報のパスを設定
+firebase_credentials = "C:/Users/itos2/werewolf_game/firebase_config.json"
+cred = credentials.Certificate(firebase_credentials)
+
+# Firebaseの初期化（既に初期化されていない場合のみ）
 if not firebase_admin._apps:
-    firebase_credentials = "C:/Users/itos2/werewolf_game/firebase_config.json"
-    cred = credentials.Certificate(firebase_credentials)
     firebase_admin.initialize_app(cred)
 
+# Firestoreのクライアントを作成
 db = firestore.client()
 
 # タイトル
@@ -22,9 +26,6 @@ roles = ["人狼", "人狼", "占い師", "騎士", "村人"]
 
 # "/" を含む名前を排除し、空白を削除
 player_name = player_name.replace("/", "").strip()
-
-# テスト用のメッセージ
-st.write("※ このモードでは1人でテストが可能です")
 
 # プレイヤーの役職を初期化
 role = None
@@ -53,8 +54,7 @@ else:
     st.error("プレイヤー名を入力してください。")
 
 # 夜のターン: 人狼のチャット機能
-# roleが定義され、"人狼" であることを確認
-if role is not None and role == "人狼":
+if role == "人狼":
     st.subheader("あなたは人狼です。他の人狼と協力して襲撃対象を決めてください。")
 
     # チャットメッセージの送信
