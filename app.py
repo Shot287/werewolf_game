@@ -26,7 +26,7 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 # プレイヤー名入力
-st.title("人狼ゲーム（テストモード）")
+st.title("人狼ゲーム")
 player_name = st.text_input("あなたの名前を入力してください:")
 
 # 役職をランダムに割り当てる
