@@ -1,0 +1,15 @@
+# システム関連ファイル
+AppData/
+NTUSER.DAT*
+*.log
+*.ini
+.vscode/
+anaconda3/
+venv/
+Downloads/
+Favorites/
+Links/
+Music/
+Videos/
+
+firebase_config.json
