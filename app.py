@@ -25,69 +25,72 @@ if not firebase_admin._apps:
 
 db = firestore.client()
 
-# プレイヤー名入力 & ログイン
-st.title("人狼ゲーム（テストモード）")
-player_name = st.text_input("あなたの名前を入力してください:")
-is_host = st.checkbox("私はホストです")
+# ログイン用変数とデータベースコレクション
+login_status = st.session_state.get("login_status", False)
+is_host = st.session_state.get("is_host", False)
 
-if st.button("ログイン"):
-    if player_name:
-        # プレイヤー情報をFirebaseに保存
-        player_ref = db.collection("werewolf_game").document(player_name)
-        player_ref.set({"name": player_name, "is_host": is_host})
-        st.success(f"{player_name} としてログインしました！")
+# ホストかプレイヤーのログイン
+if not login_status:
+    st.title("人狼ゲーム ログイン")
+    role = st.radio("あなたはホストですか？", ("ホスト", "プレイヤー"))
+
+    player_name = st.text_input("名前を入力してください:")
+    login_button = st.button("ログイン")
+
+    if login_button and player_name:
+        st.session_state.login_status = True
+        if role == "ホスト":
+            st.session_state.is_host = True
+            st.write("ホストとしてログインしました。")
+        else:
+            st.session_state.is_host = False
+            # プレイヤーを登録
+            players_ref = db.collection("werewolf_game").document(player_name)
+            players_ref.set({"name": player_name, "role": None})
+            st.write(f"プレイヤーとして {player_name} でログインしました。")
+
+# ログイン後の処理
+if login_status:
+    if is_host:
+        st.subheader("現在のプレイヤー:")
+        players = db.collection("werewolf_game").stream()
+        player_list = []
+        for player in players:
+            player_list.append(player.to_dict().get("name", "名前がありません"))
+        
+        st.write(player_list)
+        
+        if st.button("ゲーム開始") and len(player_list) == 5:
+            st.write("ゲームが開始されました！")
+
+        # 強制ログアウト機能
+        player_to_remove = st.selectbox("強制ログアウトさせるプレイヤーを選択:", player_list)
+        if st.button("強制ログアウト"):
+            db.collection("werewolf_game").document(player_to_remove).delete()
+            st.write(f"{player_to_remove} がログアウトさせられました。")
+
     else:
-        st.error("名前を入力してください")
+        st.subheader(f"プレイヤー {st.session_state['login_status']} としてログイン中")
+        st.write("ゲームがホストによって開始されるのを待っています。")
 
-# 現在ログインしているプレイヤーを表示（ホストのみ）
-if is_host:
-    st.subheader("現在のプレイヤー:")
-    players = db.collection("werewolf_game").stream()
-    player_list = []
-    for player in players:
-        player_list.append(player.to_dict()["name"])
-    
-    st.write(player_list)
-    
-    # 5人までしかログインできないように制限
-    if len(player_list) >= 5:
-        st.warning("既に5人がログインしています。これ以上ログインできません。")
-
-# ホストがゲームを開始する
-if is_host and len(player_list) >= 5:
-    if st.button("ゲームを開始"):
-        st.write("ゲームを開始しました！")
-
-# 強制ログアウト機能
-if is_host:
-    st.subheader("強制ログアウト機能")
-    player_to_logout = st.selectbox("強制ログアウトするプレイヤーを選択", player_list)
-    if st.button("強制ログアウト"):
-        db.collection("werewolf_game").document(player_to_logout).delete()
-        st.success(f"{player_to_logout} をログアウトしました")
-
-# プレイヤー名入力と役職割り当て
-if player_name:
+# 役職のランダム割り当て
+if st.session_state.login_status:
+    st.write("役職のランダム割り当て")
     roles = ["村人", "人狼", "占い師", "騎士", "狂人"]
-    assigned_role = random.choice(roles)
-    
-    # Firestoreに役職を保存
-    player_role_ref = db.collection("werewolf_game").document(player_name)
-    player_role_ref.set({"role": assigned_role})
+    if is_host:
+        st.write("ホストは役職の割り当てを管理します。")
+    else:
+        assigned_role = random.choice(roles)
+        player_name = st.session_state["login_status"]
+        player_role_ref = db.collection("werewolf_game").document(player_name)
+        player_role_ref.set({"role": assigned_role}, merge=True)
+        st.write(f"あなたの役職は {assigned_role} です。")
 
-    st.write(f"あなたの役職はランダムに {assigned_role} に決まりました。")
-
-    # 人狼の場合のチャット画面表示（仮）
+    # 人狼同士のチャット機能
     if assigned_role == "人狼":
-        st.write("あなたは人狼です。チャットで他の人狼と会話しましょう。")
-        chat_message = st.text_input("チャットメッセージを入力")
+        st.write("あなたは人狼です。他の人狼とチャットで会話できます。")
+        chat_input = st.text_input("チャットメッセージ:")
         if st.button("送信"):
-            db.collection("werewolf_game_chat").add({"name": player_name, "message": chat_message})
-            st.success("メッセージを送信しました")
+            st.write(f"送信メッセージ: {chat_input}")
+            # Firestoreなどでチャットデータを管理する処理を追加
 
-    # チャットの表示
-    st.subheader("チャット履歴")
-    messages = db.collection("werewolf_game_chat").stream()
-    for message in messages:
-        chat = message.to_dict()
-        st.write(f"{chat['name']}: {chat['message']}")
