@@ -54,3 +54,5 @@ if player_name:
         # githubデスクトップから開けた!テストで編集出来るかやろうかaaaa
         
 >>>>>>> f36ecb4377cf6cf0800534eb296acf0bcfaee416
+
+#　こちら、ショウタです。
