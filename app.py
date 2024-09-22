@@ -44,5 +44,28 @@ if player_name:
     if assigned_role == "人狼":
         st.write("あなたは人狼です。チャットで他の人狼と会話しましょう。")
 
+# チャット入力ボックス
+        chat_message = st.text_input("チャットにメッセージを入力してください:")
 
+        # メッセージ送信
+        if st.button("送信"):
+            chat_ref = db.collection("werewolf_chat").document()
+            chat_ref.set({
+                "player_name": player_name,
+                "message": chat_message,
+                "timestamp": firestore.SERVER_TIMESTAMP
+            })
+            st.write("メッセージを送信しました。")
+
+        # 他の人狼プレイヤーのメッセージを表示
+        st.write("他の人狼のメッセージ:")
+        messages_ref = db.collection("werewolf_chat").order_by("timestamp")
+        messages = messages_ref.stream()
+
+        for message in messages:
+            msg_data = message.to_dict()
+            st.write(f"{msg_data['player_name']}: {msg_data['message']}")
+
+        # 定期的にメッセージを更新
+        time.sleep(3)
 
