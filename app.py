@@ -2,6 +2,7 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 import random
+import time  # timeモジュールのインポート
 
 # FirebaseのSecrets情報を辞書形式で取得
 firebase_credentials = {
@@ -40,11 +41,11 @@ if player_name:
 
     st.write(f"あなたの役職はランダムに {assigned_role} に決まりました。")
 
-    # 人狼の場合のチャット画面表示（仮）
+    # 人狼の場合のチャット画面表示
     if assigned_role == "人狼":
         st.write("あなたは人狼です。チャットで他の人狼と会話しましょう。")
 
-# チャット入力ボックス
+        # チャット入力ボックス
         chat_message = st.text_input("チャットにメッセージを入力してください:")
 
         # メッセージ送信
@@ -68,4 +69,3 @@ if player_name:
 
         # 定期的にメッセージを更新
         time.sleep(3)
-
