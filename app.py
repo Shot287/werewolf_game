@@ -26,7 +26,7 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 # プレイヤー名入力
-st.title("人狼ゲーム（テストモード）")
+st.title("人狼ゲーム")
 player_name = st.text_input("あなたの名前を入力してください:")
 
 # 役職をランダムに割り当てる
@@ -42,8 +42,12 @@ if player_name:
 
     # 人狼の場合のチャット画面表示（仮）
     if assigned_role == "人狼":
+<<<<<<< HEAD
         st.write("あなたは人狼です。チャットで他の人狼と会話しましょう。")
 
 
 # aiiidj
 
+=======
+        st.write("あなたは人狼です。他の人狼と協力しましょう。")
+>>>>>>> 0913e7acad3158bfba23c69be5842301ecd3f415
