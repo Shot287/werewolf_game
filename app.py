@@ -45,4 +45,5 @@ if player_name:
         st.write("あなたは人狼です。チャットで他の人狼と会話しましょう。")
 
 
+# aiiidj
 
